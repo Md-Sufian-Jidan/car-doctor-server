@@ -1,10 +1,10 @@
 const express = require('express');
 const cors = require('cors');
-const cookieParser = require('cookie-parser')
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
-const app = express();
 require("dotenv").config();
-const jwt = require('jsonwebtoken')
+const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser')
+const app = express();
 const port = process.env.PORT || 5000;
 
 //middleware
@@ -86,7 +86,20 @@ async function run() {
 
     //services related api
     app.get('/services', async (req, res) => {
-      const cursor = serviceCollection.find();
+      const filter = req.query || {};
+      const search = req.query.search || "";
+      console.log(filter);
+      const query = {
+        // price: { $gt: 50, $lte: 150 },
+        title: { $regex: search, $options: 'i' }
+      };
+      const options = {
+        sort: {
+          price: filter.sort === 'asc' ? 1 : -1
+        }
+      }
+      const cursor = serviceCollection.find(query, options);
+      // const cursor = serviceCollection.find().sort({ price: filter.sort === 'asc' ? 1 : -1 });
       const result = await cursor.toArray();
       res.send(result);
     });
